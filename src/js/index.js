@@ -3,7 +3,7 @@ const $stepDescription = $('#step-description');
 const $stepOne = $('.step.one');
 const $stepTwo = $('.step.two');
 const $stepThree = $('.step.three');
-
+const $tilte = $('#title');
 
 const $containerBtnFormOne = $('#containerBtnFormOne');
 const $btnFormOne = $('#btnFormOne');
@@ -117,17 +117,6 @@ function validarFormDois() {
         $btnFormTwo.off('click');
         }}
 
-function validarFormThree() {
-    if(enderecoValido && cepValido && cidadeValido)  {
-        $containerBtnFormThree.removeClass('disabled');
-        $btnFormThree.removeClass('disabled');
-        $btnFormThree.off('click').on('click', initFormThree);
-    } else {
-        $containerBtnFormThree.addClass('disabled');
-        $btnFormThree.addClass('disabled');
-        $btnFormThree.off('click');
-        }}
-
 function initFormThree(){
     $stepText.text('Passo 3 de 3 : Sobre você');
     $stepDescription.text('Descreva sobre você para podermos te conhecer');
@@ -135,15 +124,91 @@ function initFormThree(){
     $stepThree.show();
 
     $inputHabildiades.keyup(function(){
-        enderecoValido = validaInput(this, minLengthTextArea);
+        HabilidadeValido = validaInput(this, minLengthTextArea);
         validarFormThree();
     });
 
     $inputPontos.keyup(function(){
-        enderecoValido = validaInput(this, minLengthTextArea);
+        PontosValido = validaInput(this, minLengthTextArea);
         validarFormThree();
     });
 
+}
+
+async function salvarNoTrello() {
+    try{
+        const nome =  $inputNome.val();
+        const sobrenome =  $inputSobrenome.val();
+        const email =  $inputEmail.val();
+        const dataNascimento =  $inputNascimento.val();
+        const minibio =  $inputMinibio.val();
+        const endereco =  $inputEndereco.val();
+        const complmento =  $inputComplemento.val();
+        const cidade =  $inputCidade.val();
+        const cep =  $inputCep.val();
+        const habilidades =  $inputHabildiades.val();
+        const pontosFortes =  $inputPontos.val();
+
+        if(!nome || !sobrenome || !email || !dataNascimento || !endereco || !cidade 
+            || !cep || !habilidades || ! pontosFortes){
+                return alert ('Favor preenhcer todos dados obrigatórios')
+            }
+
+        const body = {
+            name: "Candidato - " + nome + " " + sobrenome,
+            desc: `
+              Seguem dados do candidato(a):
+              ------------ Dados Pessoais --------- 
+              Nome: ${nome}
+              Sobrenome: ${sobrenome}
+              Email: ${email}
+              Data de Nascimento: ${dataNascimento}
+              Mini Bio: ${minibio}
+
+              ------------ Dados de Endereço --------- 
+              Endereço : ${endereco}
+              Complemento: ${complmento}
+              Cidade: ${cidade}
+              CEP: ${cep}
+
+              ------------ Sobre o Candidato --------- 
+              Habilidades : ${habilidades}
+              Pontos Fortes: ${pontosFortes}
+              `
+        }
+
+        await fetch('https://api.trello.com/1/cards?idList=6594ae7799cdc7c860ccd618&key=77a114e7b04d26a781bc106c825e3b9c&token=ATTA0f4d7d431d54888361da2d967834261322769e891445b115a853870224325c116B679566', 
+        {
+            method: 'POST',
+            headers: {
+            "Content-Type": "application/json",
+                },
+        body: JSON.stringify(body)
+        });
+    
+            return finalizarForm();
+    }catch(e){
+        console.log('Erro ao salvar no trello:', e);
+        }
+
+}
+
+function validarFormThree() {
+    if(PontosValido && HabilidadeValido)  {
+        $containerBtnFormThree.removeClass('disabled');
+        $btnFormThree.removeClass('disabled');
+        $btnFormThree.off('click').on('click', salvarNoTrello);
+    } else {
+        $containerBtnFormThree.addClass('disabled');
+        $btnFormThree.addClass('disabled');
+        $btnFormThree.off('click');
+        }}
+
+function finalizarForm(){
+    $stepThree.hide();
+    $stepDescription.hide();
+    $tilte.text('Inscrição realizada com sucesso');
+    $stepText.text('Aguarde uma resposta enquanto analismos suas informações');
 }
 
 function init() {
